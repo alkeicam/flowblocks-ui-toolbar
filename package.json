@@ -1,6 +1,6 @@
 {
   "name": "flowblocks-ui-toolbar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable flow diagram blocks - UI toolbar",
   "main": "./src/toolbar.js",
   "scripts": {
