@@ -254,6 +254,7 @@ class Toolbar {
             typeDefinitionsArray.forEach(element => {
                 self.createToolbarItem(element);
             });
+            console.log('Flowblocks UI Toolbar up and running')
         })
     }
 
