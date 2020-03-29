@@ -15,7 +15,10 @@ class BlockToolbarItem {
     }
 
     _initialize() {
-        jointjs.shapes.flowblocks.toolbar = {};
+        if(!jointjs.shapes.flowblocks)
+            jointjs.shapes.flowblocks = {};
+        if(!jointjs.shapes.flowblocks.toolbar)
+            jointjs.shapes.flowblocks.toolbar = {};
 
         this.Model = jointjs.shapes.devs.Model.define('flowblocks.toolbar.BlockToolbarItem', {
             // now model fields            
