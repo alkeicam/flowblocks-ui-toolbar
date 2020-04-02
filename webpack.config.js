@@ -17,5 +17,5 @@ module.exports = {
     resolve: {
         extensions: [ '.js' ]
     },
-    externals: [nodeExternals(),{jointjs: "joint"}] 
+    externals: [{jointjs: "joint"}, nodeExternals()] 
 };
