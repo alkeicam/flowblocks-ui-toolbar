@@ -9,7 +9,7 @@ module.exports = {
     output: {
         filename: 'flowblocks-ui-toolbar.js', 
         path: path.resolve(__dirname, 'dist'),
-        library: 'flowblocksUiToolbar',
+        library: 'flowblocksuitoolbar',
         libraryTarget: 'umd',
         globalObject: 'this'
     },
@@ -17,6 +17,6 @@ module.exports = {
     resolve: {
         extensions: [ '.js' ]
     },
-    
+
     externals: {jointjs: "joint"}
 };
