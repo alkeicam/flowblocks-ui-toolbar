@@ -17,6 +17,7 @@ module.exports = {
     resolve: {
         extensions: [ '.js' ]
     },
+    
 
     externals: {jointjs: "joint"}
 };
