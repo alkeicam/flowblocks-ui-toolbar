@@ -11,7 +11,7 @@ class Drawer {
         this.category = undefined;
         this.graph = undefined;
         this.paper = undefined;
-        this.emitter = undefined;
+        this.flowblocks = undefined;
         this.state = undefined;         
         this._items = [];   // stores ToolbarItems that are in this Drawer
         this.options = {
@@ -25,12 +25,12 @@ class Drawer {
      * Creates empty and detached Drawer. One can populate Drawer contents but the Drawer must be attached
      * to HTML element in order for elements to be presented.
      * @param {*} category 
-     * @param {*} emitter 
+     * @param {*} flowblocks 
      */
-    create(category,  emitter){
+    create(category,  flowblocks){
         this.state = 'UNATTACHED';
         this.category = category;        
-        this.emitter = emitter;
+        this.flowblocks = flowblocks;
     }
 
     /**
@@ -63,7 +63,7 @@ class Drawer {
         if(this.state == 'UNATTACHED'){
             this.state = 'PENDING';
             // for detached toolbar request element to which the toolbar may be attached. And await for a drawer to be attached to HTML element
-            this.emitter.emit('toolbar-drawer:requested', this.category);
+            this.flowblocks.notify('toolbar-drawer:requested', this.category);
             return toolbarItem;
         }
         
@@ -122,7 +122,7 @@ class Drawer {
         this.state = 'ATTACHED';
         // console.log('Drawer attached ', this.category, this.elementId);
         // notify that drawer is attached
-        this.emitter.emit('toolbar-drawer:attached', this.category, this.elementId);
+        this.flowblocks.notify('toolbar-drawer:attached', this.category, this.elementId);
 
         
     }
@@ -145,7 +145,7 @@ class Drawer {
         // this.paper.on('cell:pointerclick', function(cellView, e, x, y){            
             var block = cellView.model;            
             var typeClicked = block.get('_type');    
-            self.emitter.emit('toolbar-item:drag', typeClicked, block, x, y, e);
+            self.flowblocks.notify('toolbar-item:drag', typeClicked, block, x, y, e);
         })
     }
     /**
@@ -213,7 +213,7 @@ class Drawer {
  */
 class Toolbar {
     constructor(options) {        
-        this.emitter = undefined;
+        this.flowblocks = undefined;
         this.drawers = [];
         this.options = {};
         Object.assign(this.options, options);
@@ -222,10 +222,10 @@ class Toolbar {
     _initialize() {
     }
 
-    create(emitter) {
+    create(flowblocks) {
         var newToolbar = new Toolbar();
         
-        newToolbar.emitter = emitter;
+        newToolbar.flowblocks = flowblocks;
         newToolbar._bindAppEvents();
         return newToolbar;
     }   
@@ -235,7 +235,7 @@ class Toolbar {
 
         // binds paper for the given drawer when html presentation element is ready - we try to 
         // attached proper Drawer to the HTML element
-        this.emitter.on('toolbar-drawer:ready',function(category, elementId){
+        this.flowblocks.on('toolbar-drawer:ready',function(category, elementId){
             // console.log('Drawer is ready', category, elementId);
             // find drawer
             var matchingDrawer = self.drawers.find(drawer=>{
@@ -248,7 +248,7 @@ class Toolbar {
         })
 
         // resets toolbar
-        this.emitter.on('toolbar:reset', function(typeDefinitionsArray){
+        this.flowblocks.on('toolbar:reset', function(typeDefinitionsArray){
             // first removes previous toolbar contents
             self.removeAllItems();
             // now populate with new types
@@ -267,7 +267,7 @@ class Toolbar {
             drawer.removeAllItems();
             
         })
-        this.emitter.emit('toolbar-drawer:removedall');        
+        this.flowblocks.notify('toolbar-drawer:removedall');        
         // w efekcie ktos powinien wywolac bulmaExtensions.bulmaAccordion.attach(); zeby przywrocic dzialanie toolbara
     }
     /**
@@ -286,7 +286,7 @@ class Toolbar {
             drawer = new Drawer();
             
             // initialize Drawer (in a detached state)
-            drawer.create(category, this.emitter);
+            drawer.create(category, this.flowblocks);
             this.drawers.push(drawer);
         }
 
