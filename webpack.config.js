@@ -11,7 +11,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         // ,
         // libraryTarget: 'this' // <-- Important
-        library: 'flowblocks-ui-toolbar',
+        library: 'flowblocksUiToolbar',
         libraryTarget: 'umd',
         globalObject: 'this'
     },
