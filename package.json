@@ -8,7 +8,8 @@
     "coverage": "nyc --reporter html --reporter text npm test",
     "packem": "./node_modules/webpack/bin/webpack.js",
     "build": "npm install --registry http://0.0.0.0:4873 && npm update --registry http://0.0.0.0:4873  && npm run coverage && npm run packem",
-    "remote-publish-patch": "npm install && npm update && npm run coverage && npm run packem && git commit -am 'wip' && npm version patch && npm publish && git push origin && git push origin --tags"
+    "remote-publish-patch": "npm install && npm update && npm run coverage && npm run packem && git commit -am 'wip' && npm version patch && npm publish && git push origin && git push origin --tags",
+    "remote-publish-minor": "npm install && npm update && npm run coverage && npm run packem && git commit -am 'wip' && npm version minor && npm publish && git push origin && git push origin --tags"
   },
   "repository": {
     "type": "git",

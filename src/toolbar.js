@@ -223,10 +223,11 @@ class Toolbar {
     }
 
     create(emitter) {
-        var self = this;
-        this.emitter = emitter;
-        this._bindAppEvents();
-        return this;
+        var newToolbar = new Toolbar();
+        
+        newToolbar.emitter = emitter;
+        newToolbar._bindAppEvents();
+        return newToolbar;
     }   
 
     _bindAppEvents() {        
