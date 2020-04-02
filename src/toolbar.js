@@ -1,4 +1,4 @@
-const jointjs = require("jointjs")
+const joint = require("jointjs")
 const DEFAULTS = require('./defaults')
 const ToolbarItem = require('./toolbar-item')
 /**
@@ -84,9 +84,9 @@ class Drawer {
     _attach(elementId){
         var self = this;
         this.elementId = elementId;
-        this.graph = new jointjs.dia.Graph;
+        this.graph = new joint.dia.Graph;
         // create paper
-        this.paper = new jointjs.dia.Paper({
+        this.paper = new joint.dia.Paper({
             el: document.getElementById(elementId),
             width: self.options.size.width,
             height: self.options.size.height,

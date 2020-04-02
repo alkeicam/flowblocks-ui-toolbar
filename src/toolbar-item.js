@@ -1,4 +1,4 @@
-const jointjs = require("jointjs")
+const joint = require("jointjs")
 const DEFAULTS = require('./defaults')
 
 class BlockToolbarItem {
@@ -15,12 +15,12 @@ class BlockToolbarItem {
     }
 
     _initialize() {
-        if(!jointjs.shapes.flowblocks)
-            jointjs.shapes.flowblocks = {};
-        if(!jointjs.shapes.flowblocks.toolbar)
-            jointjs.shapes.flowblocks.toolbar = {};
+        if(!joint.shapes.flowblocks)
+            joint.shapes.flowblocks = {};
+        if(!joint.shapes.flowblocks.toolbar)
+            joint.shapes.flowblocks.toolbar = {};
 
-        this.Model = jointjs.shapes.devs.Model.define('flowblocks.toolbar.BlockToolbarItem', {
+        this.Model = joint.shapes.devs.Model.define('flowblocks.toolbar.BlockToolbarItem', {
             // now model fields            
             name: '',
             icon: './resources/img/svg/agave.svg',            
@@ -133,7 +133,7 @@ class BlockToolbarItem {
                 //this.updateRectangles();
 
                 this._updateMyModel();                
-                jointjs.shapes.devs.Model.prototype.initialize.apply(this, arguments);
+                joint.shapes.devs.Model.prototype.initialize.apply(this, arguments);
 
                 //joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
             },
@@ -263,11 +263,11 @@ class BlockToolbarItem {
         })
 
 
-        jointjs.shapes.flowblocks.toolbar.BlockToolbarItemView = jointjs.dia.ElementView.extend({
+        joint.shapes.flowblocks.toolbar.BlockToolbarItemView = joint.dia.ElementView.extend({
 
             initialize: function () {
 
-                jointjs.dia.ElementView.prototype.initialize.apply(this, arguments);
+                joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
                 this.listenTo(this.model, 'flowblocks-block-toolbar-item-update', function () {
                     this.update();
@@ -275,7 +275,7 @@ class BlockToolbarItem {
                 });
             }
         });
-        this.View = jointjs.shapes.flowblocks.toolbar.BlockToolbarItemView;
+        this.View = joint.shapes.flowblocks.toolbar.BlockToolbarItemView;
     }
 
     createBlank(template, statusDefinition, style) {
