@@ -307,7 +307,7 @@ class Toolbar {
         }             
         if(typeDefinition.icon){
             if(typeDefinition.icon.lastIndexOf('/')==-1){                    
-                toolbarItem.set('icon', 'https://unpkg.com/flowblocks/dist/resources/img/svg/'+typeDefinition.icon+'.svg');
+                toolbarItem.set('icon', 'https://cdn.jsdelivr.net/npm/flowblocks-icons@1.0.8/i/'+typeDefinition.icon+'.svg');
             }else{
                 toolbarItem.set('icon', typeDefinition.icon);
             }                
