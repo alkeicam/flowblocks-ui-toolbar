@@ -235,7 +235,7 @@ class Toolbar {
 
         // binds paper for the given drawer when html presentation element is ready - we try to 
         // attached proper Drawer to the HTML element
-        this.flowblocks.on('toolbar-drawer:ready',function(category, elementId){
+        this.flowblocks.on('toolbar-drawer:view-ready',function(category, elementId){
             // console.log('Drawer is ready', category, elementId);
             // find drawer
             var matchingDrawer = self.drawers.find(drawer=>{
@@ -252,11 +252,20 @@ class Toolbar {
             // first removes previous toolbar contents
             self.removeAllItems();
             // now populate with new types
-            typeDefinitionsArray.forEach(element => {
-                self.createToolbarItem(element);
-            });
+            self.populateWithItems(typeDefinitionsArray);            
             console.log('Flowblocks UI Toolbar restarted and running')
         })
+    }
+    /**
+     * Populates toolbar with new items
+     * @param {*} typeDefinitionsArray 
+     */
+    populateWithItems(typeDefinitionsArray){
+        typeDefinitionsArray.forEach(element => {
+            this.createToolbarItem(element);
+        });
+        this.flowblocks.notify('toolbar:populated');
+        // w efekcie ktos powinien wywolac bulmaExtensions.bulmaAccordion.attach(); zeby przywrocic dzialanie toolbara
     }
 
     /**
@@ -267,7 +276,7 @@ class Toolbar {
             drawer.removeAllItems();
             
         })
-        this.flowblocks.notify('toolbar-drawer:removedall');        
+        this.flowblocks.notify('toolbar:removedall');        
         // w efekcie ktos powinien wywolac bulmaExtensions.bulmaAccordion.attach(); zeby przywrocic dzialanie toolbara
     }
     /**
