@@ -283,6 +283,9 @@ class BlockToolbarItem {
             PassThrough: this.createPassThroughElement,
             Start: this.createStartElement,
             Split: this.createSplitElement,
+            Split3: this.createSplit3Element,
+            Split4: this.createSplit4Element,
+            Split5: this.createSplit5Element,
             Join: this.createJoinElement,
             End: this.createSinkElement,
             Mixer: this.createMixerElement
@@ -350,6 +353,48 @@ class BlockToolbarItem {
         return newBlock;
     }
 
+    /**
+     * Element with a single input and a tripple output
+     * @param {*} name 
+     * @param {*} statusDefinition 
+     */
+     createSplit3Element(name, statusDefinition, style) {
+        var options = this._createBaseOptions();
+        options.inPorts = ['i1']
+        options.outPorts = ['o1', 'o2', 'o3']
+    
+        var newBlock = new this.Model(options);                
+        return newBlock;
+    }
+
+    /**
+     * Element with a single input and a quadruple output
+     * @param {*} name 
+     * @param {*} statusDefinition 
+     */
+     createSplit4Element(name, statusDefinition, style) {
+        var options = this._createBaseOptions();
+        options.inPorts = ['i1']
+        options.outPorts = ['o1', 'o2', 'o3', 'o4']
+    
+        var newBlock = new this.Model(options);                
+        return newBlock;
+    }
+
+    /**
+     * Element with a single input and a quintuple output
+     * @param {*} name 
+     * @param {*} statusDefinition 
+     */
+     createSplit5Element(name, statusDefinition, style) {
+        var options = this._createBaseOptions();
+        options.inPorts = ['i1']
+        options.outPorts = ['o1', 'o2', 'o3', 'o4', 'o5']
+    
+        var newBlock = new this.Model(options);                
+        return newBlock;
+    }
+    
     /**
      * Element with a double input and a single output
      * @param {*} name 
