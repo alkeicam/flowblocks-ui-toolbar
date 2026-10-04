@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>flowblocks-ui-toolbar smoke</title>
+<link rel="stylesheet" href="/node_modules/smoke-jointjs/dist/joint.min.css">
+<style>.drawer { width: 260px; height: 400px; border: 1px solid #ccc; margin: 4px; display: inline-block; vertical-align: top; }</style>
+</head>
+<body>
+<div id="drawers"></div>
+<script src="/node_modules/smoke-jquery/dist/jquery.min.js"></script>
+<script src="/node_modules/smoke-lodash/lodash.min.js"></script>
+<script src="/node_modules/smoke-backbone/backbone-min.js"></script>
+<script src="/node_modules/smoke-jointjs/dist/joint.min.js"></script>
+<script src="/dist/flowblocks-ui-toolbar.js"></script>
+<script>
+// Minimalna szyna zdarzeń flowblocks (notify/on, read only, prefiks test id) i obsługa szuflad jak w designerze:
+// toolbar-drawer:requested -> element HTML szuflady -> toolbar-drawer:view-ready (synchronicznie)
+(function () {
+    var handlers = {};
+    var bus = {
+        readOnly: false, prefix: 'smoke', events: [],
+        notify: function (name) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            bus.events.push({name: name, args: args.map(function (a) { return a && a.attributes ? '[cell]' : a; })});
+            (handlers[name] || []).forEach(function (h) { h.apply(null, args); });
+        },
+        on: function (name, h) { (handlers[name] = handlers[name] || []).push(h); },
+        isReadOnly: function () { return bus.readOnly; },
+        getTestIdPrefix: function () { return bus.prefix; },
+        setReadOnly: function (ro) { bus.readOnly = !!ro; bus.notify('flowblocks:readonly-changed', bus.readOnly); }
+    };
+    var seq = 0;
+    bus.on('toolbar-drawer:requested', function (category, section) {
+        var el = document.createElement('div');
+        el.id = 'drawer-' + (++seq);
+        el.className = 'drawer';
+        el.setAttribute('data-category', category);
+        el.setAttribute('data-label', section && section.label ? section.label : category);
+        document.getElementById('drawers').appendChild(el);
+        // kontrakt (jak designer, także w 1.1.x): element szuflady podawany SYNCHRONICZNIE w obsłudze żądania –
+        // przy odpowiedzi asynchronicznej kolejny element trafia do szuflady w stanie PENDING bez grafu
+        bus.notify('toolbar-drawer:view-ready', category, el.id);
+    });
+    window.bus = bus;
+    window.toolbar = flowblocksuitoolbar.create(bus);
+    window.smokeReady = true;
+})();
+</script>
+</body>
+</html>

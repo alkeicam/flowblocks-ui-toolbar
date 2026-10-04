@@ -149,3 +149,58 @@ describe('Flowblocks UI Toolbar', () => {
         })
     })
 })
+
+describe('FB-T16 toolbar-item – elementy przybornika (szablony, porty, style, układ)', () => {
+    const ToolbarItem = require('../src/toolbar-item');
+    const DEFAULTS = require('../src/defaults');
+    const ports = (item, group) => item.getPorts().filter(p => p.group === group).map(p => p.id);
+    const PORTS = {
+        Start: [[], ['o1']], PassThrough: [['i1'], ['o1']], Split: [['i1'], ['o1', 'o2']], Split3: [['i1'], ['o1', 'o2', 'o3']],
+        Split4: [['i1'], ['o1', 'o2', 'o3', 'o4']], Split5: [['i1'], ['o1', 'o2', 'o3', 'o4', 'o5']], Join: [['i1', 'i2'], ['o1']],
+        Mixer: [['in1', 'in2'], ['out1', 'out2']], End: [['i1'], []]
+    };
+    Object.keys(PORTS).forEach(template => {
+        it(`FB-T16 szablon ${template}: porty wejściowe i wyjściowe`, () => {
+            const item = ToolbarItem.createBlank(template, undefined, 'cream');
+            expect(ports(item, 'in')).deep.eq(PORTS[template][0]);
+            return expect(ports(item, 'out')).deep.eq(PORTS[template][1]);
+        })
+    });
+    it('FB-T16 nieznany szablon -> błąd', () => {
+        return expect(() => ToolbarItem.createBlank('Nope')).throw('Unsuported template: Nope');
+    })
+    it('FB-T16 styl: nazwa (bez względu na wielkość liter) -> definicja z presetów i kolory części oraz portów', () => {
+        const item = ToolbarItem.createBlank('PassThrough', undefined, 'CREAM');
+        const cream = DEFAULTS.STYLES.cream;
+        expect(item.get('_style')).deep.eq(cream);
+        expect(item.attr('.fb-icon-rect/fill')).eq(cream.bodyColor);
+        expect(item.attr('.fb-label-rect/fill')).eq(cream.titleBarColor);
+        expect(item.attr('.fb-status-rect/fill')).eq(cream.statusBarColor);
+        expect(item.portProp('i1', 'attrs/circle/fill')).eq(cream.portInColor);
+        return expect(item.portProp('o1', 'attrs/circle/fill')).eq(cream.portOutColor);
+    })
+    it('FB-T16 styl: brak -> domyślny (DEFAULTS.STYLE); nieznana nazwa -> bez zmian', () => {
+        const item = ToolbarItem.createBlank('PassThrough');
+        expect(item.get('_style')).deep.eq(DEFAULTS.STYLES[DEFAULTS.STYLE]);
+        item.style('does-not-exist');
+        return expect(item.get('_style')).deep.eq(DEFAULTS.STYLES[DEFAULTS.STYLE]);
+    })
+    it('FB-T16 styl: obiekt definicji -> ikona i kolory z obiektu', () => {
+        const item = ToolbarItem.createBlank('Start', undefined, { icon: '/i/x.svg', bodyColor: '#010203', portOutColor: '#0a0b0c' });
+        expect(item.get('icon')).eq('/i/x.svg');
+        expect(item.attr('.fb-icon-rect/fill')).eq('#010203');
+        return expect(item.portProp('o1', 'attrs/circle/fill')).eq('#0a0b0c');
+    })
+    it('FB-T16 zmiana nazwy / rozmiaru przelicza układ (podpis, wysokości części) i powiadamia widok', () => {
+        const item = ToolbarItem.createBlank('PassThrough', undefined, 'cream');
+        const spy = sinon.spy();
+        item.on('flowblocks-block-toolbar-item-update', spy);
+        item.set('name', 'Credit check');
+        expect(item.attr('.fb-tool-label-text/text')).eq('Credit check');
+        item.set('size', { width: 200, height: 100 });
+        expect(item.attr('.fb-label-rect/height')).eq(20);
+        expect(item.attr('.fb-icon-rect/height')).eq(60);
+        expect(item.attr('.fb-status-rect/transform')).eq('translate(0,80)');
+        return expect(spy.callCount).eq(2);
+    })
+})
