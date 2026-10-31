@@ -1,6 +1,6 @@
 /**
  * FB-SMOKE-TB – flowblocks-ui-toolbar (dist) w Chromium: szuflady i sekcje, elementy z test id, ikony, przeciąganie,
- * tryb tylko do odczytu. Uruchomienie: npm run test:browser.
+ * tryb tylko do odczytu, etykieta i pełna nazwa elementu (FB-SMOKE-TB6, LLD-026 FB-11c). Uruchomienie: npm run test:browser.
  */
 const path = require('path');
 const {expect} = require('chai');
@@ -91,6 +91,35 @@ describe('FB-SMOKE-TB flowblocks-ui-toolbar w przeglądarce (dist)', function ()
         expect(drags).eq(1);
         await page.evaluate(() => window.bus.setReadOnly(false));
         expect(await page.$$eval('.drawer', els => els.some(e => e.classList.contains('fb-readonly')))).false;
+    });
+
+    it('FB-SMOKE-TB6 etykieta (label) zamiast nazwy typu, pełna nazwa w <title>; długa etykieta – maks. 2 linie z wielokropkiem, w obrysie elementu', async () => {
+        const LONG = 'KRD – National Debt Register – Search consumer by PESEL and identity document number';
+        await reset([
+            {...TYPES[1], label: 'Rule', title: 'Rule – JavaScript step'},
+            {...TYPES[3], name: 'conn:bureau:krd:search', label: 'KRD: Search consumer by PESEL and identity document number in the national register', title: LONG}
+        ], SECTIONS);
+        const items = await page.$$eval('[data-testid="smoke.toolbar.item"]', els => els.map(e => ({
+            type: e.getAttribute('data-block-type'),
+            title: (e.querySelector('title.fb-tool-title') || {}).textContent,
+            titles: e.querySelectorAll('title.fb-tool-title').length,
+            // tylko etykieta elementu przybornika (pozostałe teksty bloku: „Block”, status)
+            lines: Array.from(e.querySelectorAll('text.fb-tool-label-text tspan')).map(t => t.textContent).filter(Boolean),
+            box: e.getBoundingClientRect().width,
+            text: Math.max(0, ...Array.from(e.querySelectorAll('text.fb-tool-label-text')).map(t => t.getBoundingClientRect().width))
+        })));
+        const krd = items.find(i => i.type === 'conn:bureau:krd:search');
+        expect(krd.title).eq(LONG);
+        expect(krd.titles).eq(1);
+        expect(krd.lines.length).lte(2);
+        // JointJS zapisuje spacje w <tspan> jako twarde spacje (U+00A0) – \s obejmuje obie
+        expect(krd.lines.join(' ')).match(/^KRD:\s/);
+        expect(krd.lines[krd.lines.length - 1]).match(/…$/);
+        expect(krd.text).lte(krd.box + 2, 'etykieta mieści się w szerokości elementu');
+        expect(items.find(i => i.type === 'Rule').title).eq('Rule – JavaScript step');
+        // ponowny reset – jeden <title> na element
+        await reset([{...TYPES[1], label: 'Rule', title: 'Rule – JavaScript step'}], SECTIONS);
+        expect(await page.$$eval('[data-testid="smoke.toolbar.item"] title.fb-tool-title', els => els.length)).eq(1);
     });
 
     it('FB-SMOKE-TB5 ponowny reset zastępuje zawartość (bez duplikatów elementów)', async () => {

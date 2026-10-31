@@ -1,6 +1,29 @@
 const joint = require("jointjs")
 const DEFAULTS = require('./defaults')
 
+/**
+ * FB-11c: zawinięcie etykiety elementu przybornika do `maxLines` linii po `maxChars` znaków (granice słów, dzielenie
+ * zbyt długich słów); nadmiar – wielokropek w ostatniej linii. Linie łączone '\n' (atrybut text JointJS).
+ */
+function wrapLabel(label, maxChars, maxLines) {
+    var text = label === undefined || label === null ? '' : String(label);
+    if (!maxChars || text.length <= maxChars) return text;
+    var words = text.split(/\s+/).filter(Boolean), lines = [], cur = '';
+    var push = function (w) {
+        if (!cur) cur = w;
+        else if ((cur + ' ' + w).length <= maxChars) cur += ' ' + w;
+        else { lines.push(cur); cur = w; }
+        while (cur.length > maxChars) { lines.push(cur.slice(0, maxChars)); cur = cur.slice(maxChars); }
+    };
+    words.forEach(push);
+    if (cur) lines.push(cur);
+    if (lines.length <= maxLines) return lines.join('\n');
+    var out = lines.slice(0, maxLines);
+    var last = out[maxLines - 1];
+    out[maxLines - 1] = (last.length >= maxChars ? last.slice(0, maxChars - 1) : last) + '…';
+    return out.join('\n');
+}
+
 class BlockToolbarItem {
     constructor(options) {
         this.options = {
@@ -205,7 +228,8 @@ class BlockToolbarItem {
                 
                 this.attr(classSelectorPrefix + '-text/font-size', fontSize);                
                 this.attr(classSelectorPrefix + '-text/transform', 'translate(' + fontX + ',' + fontY + ')');                
-                this.attr(classSelectorPrefix + '-text/text', label);
+                // FB-11c: etykieta zawijana do 2 linii (szacunek szerokości znaku – bez pomiaru tekstu), dalej wielokropek
+                this.attr(classSelectorPrefix + '-text/text', wrapLabel(label, Math.max(4, Math.floor(baseSize.width / (fontSize * 0.55))), 2));
                 this.attr(classSelectorPrefix + '-text/font-family', DEFAULTS.TOOLBAR.FONT.FAMILY);    
                 this.attr(classSelectorPrefix + '-text/font-weight', DEFAULTS.TOOLBAR.FONT.WEIGHT);                    
             },
@@ -462,3 +486,4 @@ class BlockToolbarItem {
     
 }
 module.exports = new BlockToolbarItem({});
+module.exports.wrapLabel = wrapLabel;

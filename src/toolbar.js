@@ -77,7 +77,10 @@ class Drawer {
      * When Drawer is detached then nothing happens.
      * @param {*} toolbarItem To be presented in the Drawer
      */
-    _add(toolbarItem){
+    _add(toolbarItem, attaching){
+        // FB-11b (designer 2.3 – zwinięte szuflady rysowane leniwie): szuflada czekająca na element (PENDING) tylko
+        // przechowuje elementy – narysuje je _attach; wcześniej drugi element szuflady trafiał do nieistniejącego grafu
+        if(!attaching && this.state == 'PENDING') return toolbarItem;
         if(this.state == 'UNATTACHED'){
             this.state = 'PENDING';
             // for detached toolbar request element to which the toolbar may be attached. And await for a drawer to be attached to HTML element
@@ -95,8 +98,9 @@ class Drawer {
         this._decorateItem(toolbarItem);
         // resize
         this._resizeItem(toolbarItem);
-        // reposition items on paper
-        this._repositionItems();
+        // reposition items on paper (attaching – once, after all stored items are added)
+        if(!attaching)
+            this._repositionItems();
     }
 
     /**
@@ -140,8 +144,10 @@ class Drawer {
 
         // add all items to graph and paper (draw the drawer)
         this._items.forEach(item=>{
-            this._add(item);
+            this._add(item, true);
         })
+        if(this._items.length)
+            this._repositionItems();
         // mark drawer as attached
         this.state = 'ATTACHED';
         // console.log('Drawer attached ', this.category, this.elementId);
@@ -161,6 +167,17 @@ class Drawer {
         view.el.setAttribute('data-testid', testIdPrefix(this.flowblocks) + '.toolbar.item');
         view.el.setAttribute('data-block-type', toolbarItem.get('_type') !== undefined ? toolbarItem.get('_type') : '');
         view.el.setAttribute('data-section', this.category !== undefined ? this.category : '');
+        // FB-11c: podpowiedź z pełną nazwą (SVG <title>, jeden element na widok)
+        var title = toolbarItem.get('_title');
+        if(title && typeof document !== 'undefined' && document.createElementNS){
+            var t = view.el.querySelector ? view.el.querySelector('title.fb-tool-title') : null;
+            if(!t){
+                t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                t.setAttribute('class', 'fb-tool-title');
+                view.el.insertBefore(t, view.el.firstChild);
+            }
+            t.textContent = title;
+        }
     }
 
     /**
@@ -418,8 +435,11 @@ class Toolbar {
      */
     createToolbarItem(typeDefinition, size, section){                
         var toolbarItem = ToolbarItem.createBlank(typeDefinition.template, typeDefinition.statusDefinition, typeDefinition.style);
-        toolbarItem.set('name', typeDefinition.name);
+        // FB-11c: etykieta wyświetlana (label) niezależna od nazwy typu; pełna nazwa (title) jako podpowiedź elementu
+        var label = typeDefinition.label !== undefined && typeDefinition.label !== null && typeDefinition.label !== '' ? String(typeDefinition.label) : typeDefinition.name;
+        toolbarItem.set('name', label);
         toolbarItem.set('_type', typeDefinition.name);
+        toolbarItem.set('_title', typeDefinition.title ? String(typeDefinition.title) : label);
         if(size){
             toolbarItem.set('size', size);
         }             

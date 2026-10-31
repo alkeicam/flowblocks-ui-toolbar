@@ -32,6 +32,8 @@ function fakeFlowblocks(options) {
     var counter = 0;
     fb.on('toolbar-drawer:requested', function (category, section) {
         fb.requests.push({ category: category, section: section });
+        // opts.defer – element szuflady podawany później (jak zwinięta szuflada designera 2.3 – rysowanie leniwe)
+        if (opts.defer && opts.defer(category)) return;
         var div = document.createElement('div');
         div.id = 'tb-drawer-' + (counter++) + '-' + Date.now();
         document.body.appendChild(div);
@@ -94,6 +96,48 @@ describe('Flowblocks UI Toolbar', () => {
             return expect(entries.map(e => e.type.name)).deep.eq(['ProfileRead', 'Start', 'Rule', 'KRS', 'Custom']);
         })
     })
+    describe('FB-T28 FB-11c etykieta, podpowiedź, zawijanie', () => {
+        it('FB-T28 label typu wyświetlany, _type bez zmian, <title> z pełną nazwą (title albo label)', () => {
+            const fb = fakeFlowblocks();
+            const toolbar = theModule.create(fb);
+            fb.notify('toolbar:reset', [
+                { name: 'conn:bureau:krd:searchConsumer', label: 'KRD: Search consumer', title: 'KRD – National Debt Register – Search consumer by PESEL', template: 'PassThrough', icon: 'agave', style: 'cream', category: 'x', section: 'bureaus' },
+                { name: 'Rule', template: 'PassThrough', icon: 'agave', style: 'cream', category: 'x', section: 'flow' }
+            ], [{ id: 'bureaus', label: 'Credit bureaus' }, { id: 'flow', label: 'Flow' }]);
+            const krd = toolbar.drawers.find(d => d.category == 'bureaus')._items[0];
+            expect(krd.get('name')).eq('KRD: Search consumer');
+            expect(krd.get('_type')).eq('conn:bureau:krd:searchConsumer');
+            const el = document.querySelector('[data-block-type="conn:bureau:krd:searchConsumer"]');
+            expect(el.querySelector('title').textContent).eq('KRD – National Debt Register – Search consumer by PESEL');
+            const rule = document.querySelector('[data-block-type="Rule"]');
+            expect(rule.querySelectorAll('title.fb-tool-title').length).eq(1);
+            return expect(rule.querySelector('title.fb-tool-title').textContent).eq('Rule');
+        })
+        it('FB-T28 wrapLabel: granice słów, dzielenie długich słów, maks. 2 linie z wielokropkiem', () => {
+            const wrap = require('../src/toolbar-item').wrapLabel;
+            expect(wrap('Short', 10, 2)).eq('Short');
+            expect(wrap('Credit bureau report', 10, 2)).eq('Credit\nbureau…');
+            expect(wrap('KRD search consumer', 12, 2)).eq('KRD search\nconsumer');
+            expect(wrap('abcdefghijklmnop', 6, 2)).eq('abcdef\nghijk…');
+            return expect(wrap(undefined, 5, 2)).eq('');
+        })
+    })
+    describe('FB-T29b szuflada czekająca na element (leniwe rysowanie designera 2.3)', () => {
+        it('FB-T29b kilka elementów zwiniętej szuflady przed jej rysowaniem – bez błędu, jedno żądanie; rysowanie – wszystkie elementy', () => {
+            const many = [0, 1, 2, 3].map(i => ({ name: 'Krs' + i, template: 'PassThrough', icon: 'agave', style: 'cream', category: 'Integrations', section: 'registries' }));
+            const fb = fakeFlowblocks({ defer: (c) => c === 'registries' });
+            theModule.create(fb);
+            expect(() => fb.notify('toolbar:reset', TYPES.concat(many), SECTIONS)).not.throw();
+            expect(fb.requests.filter(r => r.category === 'registries').length).eq(1);
+            expect(document.querySelectorAll('[data-section="registries"]').length).eq(0);
+            const div = document.createElement('div');
+            div.id = 'tb-drawer-late';
+            document.body.appendChild(div);
+            fb.notify('toolbar-drawer:view-ready', 'registries', div.id);
+            return expect(Array.from(document.querySelectorAll('[data-section="registries"]')).map(e => e.getAttribute('data-block-type'))).deep.eq(['KRS', 'Krs0', 'Krs1', 'Krs2', 'Krs3']);
+        })
+    })
+
     describe('FB-T6 FB-05 test ids', () => {
         it('FB-T6 toolbar items have data-testid and data-block-type', () => {
             const fb = fakeFlowblocks();
